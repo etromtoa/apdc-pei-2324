@@ -16,10 +16,13 @@ import com.google.cloud.datastore.DatastoreOptions;
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.Key;
 import com.google.gson.Gson;
+import com.google.protobuf.Timestamp;
 
 import pt.unl.fct.di.apdc.firstwebapp.util.AuthToken;
 import pt.unl.fct.di.apdc.firstwebapp.util.LoginData;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.util.logging.Logger;
 
 @Path("/register")
@@ -41,8 +44,9 @@ public class RegisterResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response doRegister(LoginData data) {
 		LOG.fine("Registier attempt by user: " + data.username);
-		Key userKey = datastore.newKeyFactory().setKind("username").newKey("Carlos");
-		Entity person = Entity.newBuilder(userKey).set("password", "cd@fct.unl.pt").build();
+		Key userKey = datastore.newKeyFactory().setKind("username").newKey(data.username);
+		Entity person = Entity.newBuilder(userKey).set("password", data.password).build();
+		person.newBuilder(userKey).set("timeOfCreation", System.currentTimeMillis());
 		try {
 			datastore.add(person);
 		} catch (DatastoreException ex) {
