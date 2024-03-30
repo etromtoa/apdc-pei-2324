@@ -23,6 +23,11 @@
 						Password: <input type="password" name="password" id="password" /><br></br>
 						<input type="submit" onclick='getUserHere(this)' value="Get User" />
 					</div>
+					<div>
+						Information:<input type="text" name="info" id="info" /><br></br>
+
+
+					</div>
 				</form>
 			</td>
 		</tr>
@@ -61,9 +66,9 @@
 			request.onreadystatechange = function() {
 				if (request.readyState == 4) {
 					if (request.status == 200) {
-						alert(request.response);
-						location.replace("https://" + projectName
-								+ ".oa.r.appspot.com/");
+						var info = JSON.parse(request.response);
+
+						document.getElementById("info").value = info;
 					} else {
 						alert("Error recovering user. Please try again later.");
 					}

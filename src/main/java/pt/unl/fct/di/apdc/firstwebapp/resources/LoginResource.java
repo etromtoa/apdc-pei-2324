@@ -50,7 +50,7 @@ import java.util.UUID;
 public class LoginResource {
 
 	private static final Logger LOG = Logger.getLogger(LoginResource.class.getName());
-	
+
 	private final Gson g = new Gson();
 
 	private final Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
@@ -167,6 +167,18 @@ public class LoginResource {
 			LOG.warning("Failed login attempt for username: " + data.username);
 			return Response.status(Status.FORBIDDEN).build();
 		}
+	}
+
+	@GET
+	@Path("/logout")
+	public Response doLogout(@CookieParam("session::apdc") Cookie cookie) {
+		String username = SignatureUtils.checkUser(cookie);
+		LOG.fine("Logout attempt by user: " + username);
+
+		NewCookie spoiledCookie = new NewCookie("session::apdc", cookie.getValue(), "/", null, "comment", 0, false,
+				true);
+		return Response.ok().cookie(spoiledCookie).build();
+
 	}
 
 	@POST
