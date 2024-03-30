@@ -78,6 +78,8 @@
 					if (request.readyState == 4) {
 						if (request.status == 200) {
 							alert(request.response);
+							location.replace("https://" + projectName
+									+ ".oa.r.appspot.com/");
 						} else {
 							alert("Error registering user. Please try again later.");
 						}

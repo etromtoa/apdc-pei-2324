@@ -59,7 +59,8 @@
 			request.onreadystatechange = function() {
 				if (request.readyState == 4) {
 					if (request.status == 200) {
-						alert(request.response);
+						location.replace("https://" + projectName
+								+ ".oa.r.appspot.com/pages/loggedIn.html");
 					} else {
 						alert("Error recovering user. Please try again later.");
 					}

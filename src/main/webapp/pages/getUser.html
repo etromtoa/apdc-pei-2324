@@ -2,8 +2,8 @@
 <html>
 
 <head>
-	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-	<title>Zee fetching of zee user</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Zee fetching of zee user</title>
 </head>
 
 <body onload="setGetUserDefaults()">
@@ -37,19 +37,19 @@
 			event.preventDefault();
 			var projectName = "my-first-project-415920";
 			var reqUrl = "https://" + projectName
-				+ ".oa.r.appspot.com/rest/login/get/";
+					+ ".oa.r.appspot.com/rest/login/get/";
 
 			var username = document.getElementById('username').value;
 			var password = document.getElementById('password').value;
 
 			if (username == null || username == "" || password == null
-				|| password == "") {
+					|| password == "") {
 				alert("All fields are required");
 				return false;
 			} else
 				var isThisYou = {
-					"username": username,
-					"password": password
+					"username" : username,
+					"password" : password
 				};
 
 			var request = new XMLHttpRequest();
@@ -58,16 +58,17 @@
 
 			request.send(JSON.stringify(isThisYou));
 
-			request.onreadystatechange = function () {
+			request.onreadystatechange = function() {
 				if (request.readyState == 4) {
 					if (request.status == 200) {
 						alert(request.response);
+						location.replace("https://" + projectName
+								+ ".oa.r.appspot.com/");
 					} else {
 						alert("Error recovering user. Please try again later.");
 					}
 				}
 			};
-
 
 		}
 	</script>

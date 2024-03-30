@@ -2,6 +2,7 @@ package pt.unl.fct.di.apdc.firstwebapp.resources;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -9,8 +10,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -30,7 +33,7 @@ import com.google.cloud.datastore.StructuredQuery.CompositeFilter;
 import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 import com.google.gson.Gson;
 
-import pt.unl.fct.di.apdc.firstwebapp.util.AuthToken;
+import pt.unl.fct.di.apdc.firstwebapp.util.SignatureUtils;
 import pt.unl.fct.di.apdc.firstwebapp.util.LoginData;
 import pt.unl.fct.di.apdc.firstwebapp.util.LoginDataV2;
 import pt.unl.fct.di.apdc.firstwebapp.util.Utils;
@@ -40,13 +43,14 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Path("/login")
 @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
 public class LoginResource {
 
 	private static final Logger LOG = Logger.getLogger(LoginResource.class.getName());
-
+	
 	private final Gson g = new Gson();
 
 	private final Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
@@ -61,8 +65,9 @@ public class LoginResource {
 	public Response doLogin(LoginData data) {
 		LOG.fine("Login attempt by user: " + data.username);
 		if (data.username.equals("jleitao") && data.password.equals("password")) {
-			AuthToken at = new AuthToken(data.username);
-			return Response.ok(g.toJson(at)).build();
+
+			NewCookie cookie = SignatureUtils.letsBake(data.username);
+			return Response.ok().cookie(cookie).build();
 		}
 		return Response.status(Status.FORBIDDEN).entity("Incorrect username or password.").build();
 	}
@@ -88,11 +93,10 @@ public class LoginResource {
 				Timestamp now = Timestamp.now();
 				Entity log = Entity.newBuilder(logKey).set("user_login_time", now).build();
 
-				AuthToken at = new AuthToken(data.username);
-
 				datastore.put(log);
 
-				return Response.ok(g.toJson(at)).build();
+				NewCookie cookie = SignatureUtils.letsBake(data.username);
+				return Response.ok().cookie(cookie).build();
 			} else {
 				LOG.warning("Wrong password for: " + data.username);
 				return Response.status(Status.FORBIDDEN).build();
@@ -146,9 +150,8 @@ public class LoginResource {
 						.build();
 				datastore.put(ustats, log);
 
-				AuthToken at = new AuthToken(data.username);
-
-				return Response.ok(g.toJson(at)).build();
+				NewCookie cookie = SignatureUtils.letsBake(data.username);
+				return Response.ok().cookie(cookie).build();
 			} else {
 				LOG.warning("Wrong password for: " + data.username);
 				Entity ustats = Entity.newBuilder(countersKeys)
@@ -169,9 +172,12 @@ public class LoginResource {
 	@POST
 	@Path("/user")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response listLast24HourLogins(LoginData data) {
+	public Response listLast24HourLogins(LoginData data, @CookieParam("session::apdc") Cookie cookie) {
 		LOG.fine("Attemp to recall logins from user in the last 24 hours: " + data.username);
 
+		if (!SignatureUtils.checkUser(cookie).equals(data.username)) {
+			return Response.status(Status.FORBIDDEN).build();
+		}
 		String status = isDataValid(data);
 		if (!status.equals(Utils.SUCCESS)) {
 			return Response.status(Status.BAD_REQUEST).entity(status).build();
@@ -209,9 +215,13 @@ public class LoginResource {
 	@POST
 	@Path("/user/pagination")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response listLast24HourLogins3x3(LoginData data, @Context HttpServletRequest req) {
+	public Response listLast24HourLogins3x3(LoginData data, @Context HttpServletRequest req,
+			@CookieParam("session::apdc") Cookie cookie) {
 		LOG.fine("Attemp to recall logins from user: " + data.username);
 
+		if (!SignatureUtils.checkUser(cookie).equals(data.username)) {
+			return Response.status(Status.FORBIDDEN).build();
+		}
 		String status = isDataValid(data);
 		if (!status.equals(Utils.SUCCESS)) {
 			return Response.status(Status.BAD_REQUEST).entity(status).build();
@@ -336,7 +346,7 @@ public class LoginResource {
 	@Path("/delete")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response deLete(LoginDataV2 data) {
-		LOG.fine("Attemp to delete user: " + data.name);
+		LOG.fine("Attemp to delete user using backdoor: " + data.name);
 		if (data.username.equals("admin") && data.password.equals("admin") && data.confirmation.equals("password")
 				&& data.email.equals("admin@admin.admin")) {
 
@@ -352,8 +362,11 @@ public class LoginResource {
 	@DELETE
 	@Path("/delete/v2")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response deLeteV2(LoginData data) {
+	public Response deLeteV2(LoginData data, @CookieParam("session::apdc") Cookie cookie) {
 		LOG.fine("Attemp to delete user: " + data.username);
+		if (!SignatureUtils.checkUser(cookie).equals(data.username)) {
+			return Response.status(Status.FORBIDDEN).build();
+		}
 
 		Key userKey = datastore.newKeyFactory().setKind("User").newKey(data.username);
 		Entity entity = datastore.get(userKey);
@@ -408,4 +421,5 @@ public class LoginResource {
 
 		return Utils.SUCCESS;
 	}
+
 }
