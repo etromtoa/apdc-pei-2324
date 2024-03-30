@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -80,6 +81,32 @@ public class RegisterResource {
 				// entity.getKey() already exists
 				return Response.status(Status.FORBIDDEN).entity("Username already in use.").build();
 			}
+		}
+		AuthToken at = new AuthToken(data.username);
+		return Response.ok(g.toJson(at)).build();
+	}
+
+	@PUT
+	@Path("/update")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response doUpdate(LoginDataV2 data) {
+		LOG.fine("Attemp to update user: " + data.username);
+
+		String status = isDataValid(data);
+		if (!status.equals(Utils.SUCCESS)) {
+			return Response.status(Status.BAD_REQUEST).entity(status).build();
+		}
+
+		Key userKey = datastore.newKeyFactory().setKind("User").newKey(data.username);
+		Entity person = Entity.newBuilder(userKey).set("password", DigestUtils.sha512Hex(data.password)).set("email", data.email).set("name", data.name).build();
+
+		try {
+			datastore.update(person);
+		} catch (DatastoreException e) {
+
+			// entity.getKey() already exists
+			return Response.status(Status.FORBIDDEN).build();
+
 		}
 		AuthToken at = new AuthToken(data.username);
 		return Response.ok(g.toJson(at)).build();

@@ -36,15 +36,13 @@ public class ComputationResource {
 	@Path("/hello")
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response hello() throws IOException {
-		// LOG.fine("Saying hello!!");
-		// return Response.ok().entity("Hello apdc-pei-2324 class! I hope you are having
-		// a fine day.").build();
-		try {
-			throw new IOException("Ups");
-		} catch (Exception e) {
-			LOG.log(Level.SEVERE, "Exception on -method /hello", e);
-			return Response.temporaryRedirect(URI.create("/error/500.html")).build();
-		}
+		LOG.fine("Saying hello!!");
+		return Response.ok().entity("Hello apdc-pei-2324 class! I hope you are having a fine day.").build();
+		/*
+		 * try { throw new IOException("Ups"); } catch (Exception e) {
+		 * LOG.log(Level.SEVERE, "Exception on -method /hello", e); return
+		 * Response.temporaryRedirect(URI.create("/error/500.html")).build(); }
+		 */
 	}
 
 	@GET

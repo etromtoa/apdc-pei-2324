@@ -55,6 +55,15 @@
 		<servlet-name>MainServices</servlet-name>
 		<url-pattern>/rest/*</url-pattern>
 	</servlet-mapping>
+	<servlet>
+		<servlet-name>servlet-storage</servlet-name>
+		<servlet-class>pt.unl.fct.di.apdc.firstwebapp.servlets.MediaResourceServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>servlet-storage</servlet-name>
+		<url-pattern>/gcs/*</url-pattern>
+	</servlet-mapping>
 	<security-constraint>
 		<web-resource-collection>
 			<web-resource-name>Restricted Area</web-resource-name>
