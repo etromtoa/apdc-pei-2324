@@ -1,7 +1,6 @@
 package pt.unl.fct.di.apdc.firstwebapp.resources;
 
 import java.io.IOException;
-import java.net.URI;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.*;
